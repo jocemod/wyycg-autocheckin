@@ -1,21 +1,42 @@
-name: 'SyncMirror'
+name: Run Script at Specific Time
 
 on:
-  workflow_dispatch:
-  push:
+  schedule:
+    - cron: '59 9 * * *' # 每天9:59开始
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout codes'
-        uses: actions/checkout@v2
-      
-      - name: 'Sync'
-        id: commit
-        run: |
-          git fetch --unshallow
-          git checkout master
-          git remote add gitea https://${{ secrets.GITEA_USERNAME }}:${{ secrets.GITEA_PASSWORD }}@git.bili33.top/GamerNoTitle/wyycg-AutoCheckin.git   
-          git push gitea master          
+  run-script:
+    runs-on: ubuntu-latest # 使用最新的 Ubuntu 运行
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 # 更新 checkout action 到 v3
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' # 使用 Python 3.x
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt # 假设你的脚本需要某些依赖
+
+      - name: Run script
+        id: run_script
+        run: |
+          # 假设你的脚本名为 main.py
+          python main.py
+          # 如果你的脚本需要运行到10:01，确保它在这个时间内完成
+
+      - name: Check script completion time
+        if: always()
+        run: |
+          # 检查脚本是否在10:01之前完成
+          # 这里只是一个示例，你可以根据实际情况进行调整
+          current_time=$(date +%H:%M)
+          echo "Current time is $current_time"
+          if [[ "$current_time" == "10:01" ]]; then
+            echo "Script completed by 10:01 as expected."
+          else
+            echo "Script did not complete by 10:01."
+          fi

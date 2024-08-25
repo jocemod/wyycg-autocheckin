@@ -1,42 +1,37 @@
-name: Run Script at Specific Time
+name: Auto Checkin
 
 on:
   schedule:
-    - cron: '59 9 * * *' # 每天9:59开始
+    - cron: '59 9 * * *' # 每天9:59运行
+    - cron: '0 10 * * *' # 每天10:00运行
+    - cron: '1 10 * * *' # 每天10:01运行
 
 jobs:
-  run-script:
-    runs-on: ubuntu-latest # 使用最新的 Ubuntu 运行
+  auto-checkin-job:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x' # 使用 Python 3.x
+          python-version: '3.x' # 使用最新的Python 3版本
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt # 假设你的脚本需要某些依赖
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Run script
-        id: run_script
+      # 如果你的脚本需要特定的环境变量，请在这里设置
+      - name: Run the checkin script
+        env:
+          COOKIE: ${{ secrets.COOKIE }}
+          TELEID: ${{ secrets.TELEID }}
+          TELETOKEN: ${{ secrets.TELETOKEN }}
+          SCKEY: ${{ secrets.SCKEY }}
+          QQKEY: ${{ secrets.QQKEY }}
+          PPKEY: ${{ secrets.PPKEY }}
         run: |
-          # 假设你的脚本名为 main.py
-          python main.py
-          # 如果你的脚本需要运行到10:01，确保它在这个时间内完成
-
-      - name: Check script completion time
-        if: always()
-        run: |
-          # 检查脚本是否在10:01之前完成
-          # 这里只是一个示例，你可以根据实际情况进行调整
-          current_time=$(date +%H:%M)
-          echo "Current time is $current_time"
-          if [[ "$current_time" == "10:01" ]]; then
-            echo "Script completed by 10:01 as expected."
-          else
-            echo "Script did not complete by 10:01."
-          fi
+          python main.py $COOKIES $TELEID $TELETOKEN $SCKEY $QQKEY $PPKEY
